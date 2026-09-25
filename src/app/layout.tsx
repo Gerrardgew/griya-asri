@@ -14,7 +14,9 @@ const publicSans = Public_Sans({
   display: 'swap',
 })
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+// `||` (bukan ??) dengan sengaja: string kosong dari env var Vercel yang
+// belum diisi harus jatuh ke fallback — ?? tidak menolak ''.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
