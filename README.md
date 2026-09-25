@@ -1,86 +1,93 @@
-# Griya Asri Realty — Website Property Accessible (Portfolio Demo)
+# Griya Asri Realty
 
-Website property/real-estate frontend yang accessible untuk semua umur, dibangun sesuai `PRD.md` dan `DESIGN.md` di workspace ini.
+Website properti yang accessible untuk semua umur — dibangun sebagai portfolio engineering dengan data demo.
 
-**Status: situs demo.** Semua proyek, harga, dan kontak adalah data contoh.
+> **Demo:** _belum di-deploy — tambahkan URL demo di sini setelah live_
+> **Status:** situs demo. Semua proyek, harga, dan kontak bersifat contoh.
 
-## Tech Stack
+© 2026 Gerrardgew. All Rights Reserved — lihat [LICENSE](./LICENSE).
 
-- **Next.js 16 (App Router) + React 19 + TypeScript** — SSG/ISR untuk SEO terbaik
-- **Tailwind CSS** — design tokens dari DESIGN.md
-- **Prisma + SQLite** — database ringan untuk demo (skema siap migrasi ke PostgreSQL)
-- **next/font** — Lora (display) + Public Sans (body)
-- Tanpa CMS eksternal — admin dashboard custom dengan server actions
+---
+
+## Tentang Proyek
+
+Website showcase properti dengan prioritas ganda: **dapat dipakai mandiri oleh pengguna lansia dan non-tech-savvy** (font besar, bahasa sederhana, satu tombol kontak yang selalu terlihat), sekaligus **menunjukkan kualitas engineering** — SEO teknis penuh, aksesibilitas WCAG AA, security audit tertutup, dan test E2E otomatis.
+
+Perencanaannya terdokumentasi di dua dokumen produk: `PRD.md` (scope, user stories, requirement) dan `DESIGN.md` (design principles, design tokens, component spec).
+
+## Fitur
+
+**Situs publik**
+- **Katalog proyek** dengan search & filter (kota, harga, kamar, status) via URL query — hasil tetap dirender server-side, berfungsi tanpa JavaScript
+- **Detail proyek**: galeri lightbox (keyboard-navigable), tipe unit, fasilitas, peta lokasi embed, sticky CTA WhatsApp di mobile
+- **Kalkulator KPR** dengan rumus anuitas — harga ter-prefill dari tipe unit, hasil bisa dikirim ke sales via WhatsApp (pesan ter-prefill)
+- **Bot FAQ** — quick-reply per topik + pencocokan kata kunci, fallback ke kontak manusia, tidak pernah menggantung
+- **Panduan & glosarium** — istilah properti (KPR, DP, SHM, PBG) dijelaskan dengan bahasa awam
+- **SEO**: metadata per halaman, `sitemap.xml` dinamis, `robots.txt`, JSON-LD (Organization, Product, BreadcrumbList, FAQPage), semua konten server-rendered
+
+**Dashboard admin** (login terproteksi)
+- CRUD proyek, tipe unit, FAQ, dan pengaturan situs (nomor WA, hero, jam operasional) — tanpa menyentuh kode
+- Alur draft → preview → publish, dengan validasi minimal-1-foto sebelum publish
+- Dashboard ringkasan + daftar lead dari form kontak
+
+**Aksesibilitas & keandalan**
+- Kontras WCAG AA di seluruh token warna, fokus visible, navigasi keyboard penuh, skip link, `prefers-reduced-motion` dihormati
+- Rate limiting (login & form kontak), validasi server-side di semua input, security headers, sesi hardening
+- 33 test E2E Playwright di 10 critical user journey
+
+## Arsitektur
+
+```
+┌─ src/app/
+│  ├─ (publik)/          Halaman publik + chrome (header/footer/bot) — route group
+│  │  ├─ proyek/         Index (filter via searchParams) & detail [slug]
+│  │  ├─ kalkulator/     Kalkulator KPR (client component, prefill via query)
+│  │  └─ kontak|faq|panduan|masuk
+│  └─ admin/             Dashboard terproteksi (guard sesi di layout.tsx)
+│     └─ actions.ts      9 server actions (CRUD, publish, settings)
+├─ src/components/       14 komponen reusable (Server + Client Components)
+├─ src/lib/              Domain logic murni:
+│  ├─ auth.ts            Sesi cookie HMAC + verifikasi admin ke DB (fail-closed)
+│  ├─ kpr.ts             Rumus anuitas + format Rupiah + waLink
+│  ├─ data.ts            Query helpers dengan fallback aman (DB gagal ≠ halaman crash)
+│  ├─ ratelimit.ts       Fixed-window in-memory (siap ditukar Upstash)
+│  └─ validate|slug|jsonld
+└─ prisma/               Schema (6 model) + seed dummy env-based
+```
+
+**Keputusan arsitektur utama:**
+
+- **Next.js 16 App Router, SSG/ISR-first** — semua konten publik ter-prerender (SEO + LCP), halaman admin dinamis. Data diambil langsung dari Prisma; tidak ada layer API eksternal.
+- **Server Actions, bukan REST** — semua mutasi via action + form; origin-check bawaan Next menghilangkan kebutuhan CSRF handler manual.
+- **SQLite + Prisma** untuk demo self-contained; skema normal dan siap migrasi PostgreSQL.
+- **Async API Next 16** (`cookies()`/`headers()`/`params` sebagai Promise) — migrasi penuh, `npm audit` bersih (0 vulnerabilities).
 
 ## Menjalankan Lokal
 
 ```bash
 npm install
-npx prisma db push      # buat database SQLite dari schema
-npm run db:seed         # isi data dummy (6 proyek, FAQ, admin, konfigurasi)
-npm run dev             # buka http://localhost:3000
+cp .env.example .env    # isi SESSION_SECRET (min 32 char) + kredensial admin
+npx prisma db push
+npm run db:seed         # 6 proyek dummy + 8 FAQ + akun admin
+npm run dev             # http://localhost:3000
 ```
 
-**Login admin:** http://localhost:3000/masuk — kredensial diatur lewat `ADMIN_EMAIL` / `ADMIN_PASSWORD` di `.env` (dipakai `npm run db:seed`; min. 8 karakter). Lihat `.env.example`.
+Dashboard admin: `/masuk` (kredensial sesuai `ADMIN_EMAIL`/`ADMIN_PASSWORD` di `.env`).
 
-## Fitur MVP (sesuai PRD)
-
-| Fitur | Status |
-|---|---|
-| Homepage showcase + hero editable | ✅ |
-| Daftar proyek + search/filter via URL (jalan tanpa JS) | ✅ |
-| Detail proyek: galeri lightbox, tipe unit, peta, sticky CTA | ✅ |
-| Kalkulator KPR (anuitas, hasil terkirim ke WA) | ✅ |
-| Bot chat FAQ statis (quick-reply + keyword, fallback WA) | ✅ |
-| Kontak WA/email + form → Lead | ✅ |
-| Panduan & glosarium (KPR, DP, SHM, PBG) | ✅ |
-| Admin: CRUD proyek/unit/FAQ/pengaturan, draft/preview/publish | ✅ |
-| Aksesibilitas: toggle A−/A/A+, skip link, keyboard nav, ARIA | ✅ |
-| SEO: metadata, sitemap.xml, robots.txt, JSON-LD | ✅ |
-
-## Struktur Penting
-
-```
-prisma/schema.prisma      # data model (Project, UnitType, Faq, Lead, AdminUser, SiteConfig)
-prisma/seed.mjs           # data dummy
-src/lib/                  # db, auth (session HMAC), kpr (anuitas), data helpers
-src/app/(publik)/         # halaman publik + chrome (header/footer/bot)
-src/app/admin/            # dashboard admin (terproteksi session)
-src/components/           # komponen reusable sesuai DESIGN.md §7
-```
-
-## Testing E2E (Playwright)
-
-Suite E2E menguji 33 skenario di 10 critical user journey (jelajah proyek, filter, kalkulator KPR, kontak, bot FAQ, SEO artefak, login/guard, CRUD proyek, tipe unit & FAQ, pengaturan, rate limit).
+## Testing
 
 ```bash
-npm run test:e2e      # build + seed DB test + jalankan semua (headless)
-npm run test:e2e:ui   # mode UI interaktif (pilih test, lihat trace)
-npm run test:e2e:ci   # sama dengan test:e2e, untuk CI (tanpa reuse server)
-npx playwright show-report   # buka laporan HTML setelah run
+npm run test:e2e        # build + seed DB test + 33 skenario Playwright
+npm run test:e2e:ui     # mode interaktif
+npx playwright show-report
 ```
 
-Yang perlu diketahui:
+Suite berjalan terisolasi di `e2e.db` + port 3222 (tidak menyentuh data dev), seed ulang tiap run, dan dijalankan otomatis per PR oleh `.github/workflows/e2e.yml`.
 
-- **Isolasi penuh**: suite memakai database terpisah (`e2e.db`) dan port khusus (3222), di-push + seed ulang setiap run. Database dev Anda (`dev.db` di port 3111) tidak tersentuh.
-- **Kredensial test**: `ADMIN_EMAIL`/`ADMIN_PASSWORD` di `.env.e2e` (bukan kredensial dev). Fixture `adminPage` menandatangani cookie sesi langsung dari `SESSION_SECRET` test — test admin tidak mengulang login.
-- **Urutan penting**: test berjalan serial (workers=1); rate-limit test (`z-*.spec.ts`) sengaja paling akhir karena mengunci bucket login ±15 menit.
-- **CI**: `.github/workflows/e2e.yml` menjalankan suite di setiap PR/push main; report + trace di-upload sebagai artifact saat gagal.
+## Keamanan
 
-## Keamanan (hasil audit pre-launch)
+Ringkasan hasil audit pre-launch (14 temuan, semua tertangani): secret wajib via env (fail-fast), cookie `httpOnly`+`Secure`+24 jam dengan revokasi via DB, rate limiting, input capping + URL allowlist http(s), security headers, JSON-LD escape, kredensial tidak pernah di-hardcode/log. Detail di bagian "Keamanan" README versi lengkap — lihat riwayat sesi audit.
 
-- **Secret:** `SESSION_SECRET` wajib ada di env (aplikasi gagal start tanpanya); `.env` tidak di-commit (lihat `.gitignore`).
-- **Sesi:** cookie `httpOnly` + `SameSite=Lax` + `Secure` di produksi, usia 24 jam, dan divalidasi ulang ke database (admin nonaktif langsung kehilangan akses).
-- **Rate limit:** login maks 5 percobaan/15 menit/IP, form kontak maks 5/jam/IP (in-memory — untuk multi-instance ganti Upstash di `src/lib/ratelimit.ts`).
-- **Input:** semua field dibatasi panjang di server; URL foto hanya http(s); koordinat divalidasi range.
-- **Headers:** `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS (produksi), CSP Report-Only (lihat `next.config.mjs`).
-- **Dependency:** `npm audit` bersih (0 vulnerabilities) sejak migrasi Next 16.3.6 + React 19 — menutup CVE critical/high era Next 14 (termasuk GHSA-p293-qw3h-jr36 RCE Windows & postcss).
-- **JSON-LD:** di-escape lewat `safeJsonLd()` agar `</script>` tidak bisa breakout.
-- Kredensial admin tidak pernah di-hardcode maupun di-log.
+## Lisensi
 
-## Catatan Produksi
-
-- Ganti `SESSION_SECRET` di `.env` dengan string acak ≥32 karakter sebelum deploy.
-- `NEXT_PUBLIC_SITE_URL` dipakai untuk canonical/sitemap — sesuaikan dengan domain.
-- SQLite cocok untuk demo; untuk deploy multi-instance (mis. Vercel), migrasi ke PostgreSQL cukup ganti `provider` di `schema.prisma`.
-- Foto dummy memakai picsum.photos (sudah di-allowlist `next.config.mjs`).
+Semua hak dilindungi. Lihat [LICENSE](./LICENSE).
