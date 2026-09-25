@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id             Int          @id @default(autoincrement())
+  slug           String       @unique
+  nama           String
+  alamat         String       @default("")
+  kota           String
+  koordinatLat   Float?
+  koordinatLng   Float?
+  deskripsi      String       @default("")
+  status         String       @default("prapenjualan") // prapenjualan | siap_huni | sold_out
+  featured       Boolean      @default(false)
+  publish        Boolean      @default(false)
+  fasilitas      String       @default("") // satu fasilitas per baris
+  thumbnailUrl   String?
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  unitTypes      UnitType[]
+  galeri         GaleriItem[]
+}
+
+model UnitType {
+  id           Int     @id @default(autoincrement())
+  projectId    Int
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  namaTipe     String
+  harga        Float   @default(0)
+  luasTanah    Float?
+  luasBangunan Float?
+  kamarTidur   Int     @default(2)
+  kamarMandi   Int     @default(1)
+  lantai       Int     @default(1)
+  stok         Int     @default(0)
+  spesifikasi  String  @default("") // satu item per baris
+  fotoUrl      String?
+  urutan       Int     @default(0)
+}
+
+model GaleriItem {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String  @default("")
+  urutan    Int     @default(0)
+}
+
+model Faq {
+  id         Int     @id @default(autoincrement())
+  pertanyaan String
+  jawaban    String
+  kategori   String  @default("umum") // harga | lokasi | cara_beli | kontak | umum
+  urutan     Int     @default(0)
+  publish    Boolean @default(true)
+}
+
+model Lead {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  telepon   String
+  email     String?
+  projectId Int?
+  pesan     String   @default("")
+  sumber    String   @default("form") // wa | email | form | bot
+  status    String   @default("baru")
+  createdAt DateTime @default(now())
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  nama         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  aktif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model SiteConfig {
+  id             Int    @id @default(1)
+  whatsappNumber String @default("6281234567890")
+  email          String @default("halo@griyaasri.id")
+  alamat         String @default("")
+  jamOperasional String @default("Senin–Sabtu, 08.00–17.00 WIB")
+  heroTitle      String @default("Rumah Nyaman untuk Semua Generasi")
+  heroSubtitle   String @default("")
+  heroCtaLabel   String @default("Lihat Proyek")
+  sosialMedia    String @default("")
+}

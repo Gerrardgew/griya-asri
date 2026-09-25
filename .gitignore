@@ -1,0 +1,21 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+prisma/dev.db
+prisma/dev.db-journal
+.DS_Store
+
+# Secret & log — audit #3
+.env
+.env*.local
+.env.e2e
+.e2e.env
+*.log
+
+# Playwright
+playwright-report/
+test-results/
+trace-h/
+prisma/e2e.db
+prisma/e2e.db-journal
