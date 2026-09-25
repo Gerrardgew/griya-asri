@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Design tokens (DESIGN.md §3) ===== */
+:root {
+  --parchment: #faf7f2;
+  --surface: #ffffff;
+  --ink: #26221e;
+  --ink-2: #6b6359;
+  --clay: #9a3b1e;
+  --amber: #8a5a00;
+  --moss: #3e6b3e;
+  --slate: #5f5a52;
+  --wa: #0e6a5c;
+  --danger: #b3261e;
+  --line: #c9c1b6;
+}
+
+/* Base 18px (112.5%) — keputusan lansia-friendly; toggle A−/A/A+ mengubah ini */
+html {
+  font-size: 112.5%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--parchment);
+  color: var(--ink);
+}
+
+/* Focus ring clay, kontras 6.5:1 di parchment */
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip link — tersembunyi visual, muncul saat fokus keyboard */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--clay);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 8px 0;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* Hormati preferensi pengguna: tanpa animasi dekoratif */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Field form dasar — label selalu di atas input (pola gov.uk) */
+.field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.375rem;
+}
+.field-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.field-input:focus {
+  border-color: var(--clay);
+}
