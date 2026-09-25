@@ -76,12 +76,11 @@ Dashboard admin: `/masuk` (kredensial sesuai `ADMIN_EMAIL`/`ADMIN_PASSWORD` di `
 
 ## Deploy ke Vercel
 
-SQLite tidak bisa persisten di serverless, jadi produksi memakai **PostgreSQL (Neon)** — schema postgres di-generate otomatis dari schema utama saat build (`npm run build:vercel`), tanpa duplikasi model.
+SQLite tidak bisa persisten di serverless, jadi produksi memakai **PostgreSQL (Neon)** — script `npm run build` otomatis memilih provider Prisma dari `DATABASE_URL` (postgres → generate client postgres, selain itu sqlite), jadi **tidak perlu mengubah Build Command** di Vercel dan tidak ada duplikasi model.
 
 1. **Buat database Neon**: vercel.com → tab **Storage** → **Create Database** → pilih *Neon (Postgres)*. Salin `DATABASE_URL` yang diberikan (format `postgresql://…`), atau buat akun di [neon.tech](https://neon.tech) dan ambil connection string-nya.
-2. **Import repo di Vercel**: Add New → Project → pilih `griya-asri` dari GitHub.
-3. **Build Command**: ubah menjadi `npm run build:vercel` (di Settings → Build & Output Settings).
-4. **Environment Variables** (Settings → Environment Variables), semuanya untuk Production + Preview:
+2. **Import repo di Vercel**: Add New → Project → pilih `griya-asri` dari GitHub. Biarkan Build Command default (`npm run build`).
+3. **Environment Variables** (Settings → Environment Variables), semuanya untuk Production + Preview:
    | Kunci | Nilai |
    |---|---|
    | `DATABASE_URL` | URL Neon dari langkah 1 |
@@ -89,8 +88,8 @@ SQLite tidak bisa persisten di serverless, jadi produksi memakai **PostgreSQL (N
    | `NEXT_PUBLIC_SITE_URL` | URL produksi, mis. `https://griya-asri.vercel.app` (isi setelah tahu URL-nya, lalu redeploy) |
    | `ADMIN_EMAIL` | email admin Anda |
    | `ADMIN_PASSWORD` | password admin Anda (min 8 karakter) |
-5. **Deploy**. Build pertama akan men-generate schema postgres + klien Prisma otomatis.
-6. **Isi database produksi** dari mesin lokal — buat file `.env.production` (tergitignore) berisi `DATABASE_URL` Neon + `ADMIN_EMAIL`/`ADMIN_PASSWORD` produksi, lalu:
+4. **Deploy**. Setelah ini, setiap `git push` ke `main` otomatis ter-deploy (Vercel Git Integration).
+5. **Isi database produksi** dari mesin lokal — buat file `.env.production` (tergitignore) berisi `DATABASE_URL` Neon + `ADMIN_EMAIL`/`ADMIN_PASSWORD` produksi, lalu:
    ```bash
    npm run db:push:pg     # buat tabel di Neon
    npm run db:seed:pg     # isi data dummy + akun admin produksi
