@@ -11,7 +11,11 @@ prisma/dev.db-journal
 .env*.local
 .env.e2e
 .e2e.env
+.env.production
 *.log
+
+# Generated postgres schema variant (dibuat saat build Vercel)
+prisma/schema.postgres.prisma
 
 # Playwright
 playwright-report/

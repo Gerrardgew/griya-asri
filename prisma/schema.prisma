@@ -2,6 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Lokal & E2E memakai SQLite. Untuk Vercel/produksi, script
+// prisma/make-postgres-schema.mjs meng-generate salinan schema ini dengan
+// provider postgresql (lihat scripts build:vercel & db:*:pg di package.json).
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
